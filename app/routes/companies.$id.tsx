@@ -9,6 +9,16 @@ import {
   getLoansByCompanyId
 } from "~/services/mock/api";
 import { useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const tabs = [
   { id: "basic", name: "基本情報" },
@@ -59,19 +69,17 @@ export default function CompanyDetail() {
           </div>
         </div>
 
-        {/* タブナビゲーション */}
         <div className="border-b border-gray-200">
-          <nav className="-mb-px flex" aria-label="Tabs">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
             {tabs.map((tab) => (
               <button
-                type="button"
                 key={tab.id}
                 onClick={() => setCurrentTab(tab.id)}
                 className={`${
                   currentTab === tab.id
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } w-1/4 py-4 px-1 text-center border-b-2 font-medium text-sm`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 {tab.name}
               </button>
@@ -79,7 +87,6 @@ export default function CompanyDetail() {
           </nav>
         </div>
 
-        {/* タブコンテンツ */}
         <div className="px-4 py-5 sm:px-6">
           {currentTab === "basic" && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -116,29 +123,79 @@ export default function CompanyDetail() {
 
           {currentTab === "financial" && (
             <div className="space-y-6">
+              <div className="w-full overflow-x-auto">
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart
+                    data={financials}
+                    margin={{
+                      top: 20,
+                      right: 50,
+                      left: 50,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="fiscalYear" />
+                    <YAxis width={80} />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#8884d8"
+                      name="売上高"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="operatingProfit"
+                      stroke="#82ca9d"
+                      name="営業利益"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="netIncome"
+                      stroke="#ffc658"
+                      name="当期純利益"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
               {financials.map((financial) => (
                 <div key={financial.id} className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-900 mb-4">
-                    {financial.fiscalYear}年度 財務情報
-                  </h4>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <h4 className="text-sm font-medium text-gray-900 mb-4">{financial.fiscalYear}年度 財務詳細</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">売上高</p>
-                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                        {financial.revenue.toLocaleString()}円
-                      </p>
+                      <p className="text-sm text-gray-500">売上高:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.revenue.toLocaleString()} 円</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">営業利益</p>
-                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                        {financial.operatingProfit.toLocaleString()}円
-                      </p>
+                      <p className="text-sm text-gray-500">営業利益:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.operatingProfit.toLocaleString()} 円</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">当期純利益</p>
-                      <p className="mt-1 text-lg font-semibold text-gray-900">
-                        {financial.netIncome.toLocaleString()}円
-                      </p>
+                      <p className="text-sm text-gray-500">当期純利益:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.netIncome.toLocaleString()} 円</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">総資産:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.totalAssets.toLocaleString()} 円</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">純資産:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.netAssets.toLocaleString()} 円</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">キャッシュフロー:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.cashFlow.toLocaleString()} 円</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">負債比率:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.debtRatio.toFixed(2)}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">流動比率:</p>
+                      <p className="text-lg font-semibold text-gray-900">{financial.currentRatio.toFixed(2)}%</p>
                     </div>
                   </div>
                 </div>
