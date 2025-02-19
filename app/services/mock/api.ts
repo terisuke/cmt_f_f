@@ -1,13 +1,13 @@
 import { companies, loans, financials, paymentHistory } from './data';
-import type { Company, Loan, Financial, PaymentHistory } from '~/models/types';
+import type { Company, Loan, Financial, PaymentHistory, Alert } from '~/models/types';
 
 // 企業情報の取得
 export const getCompanies = (): Company[] => companies;
-export const getCompanyById = (id: string): Company | undefined => 
+export const getCompanyById = (id: string): Company | undefined =>
   companies.find(c => c.id === id);
 
 // 融資情報の取得
-export const getLoansByCompanyId = (companyId: string): Loan[] => 
+export const getLoansByCompanyId = (companyId: string): Loan[] =>
   loans.filter(l => l.companyId === companyId);
 
 // 財務情報の取得
@@ -66,7 +66,67 @@ const getRiskLevel = (
   currentRatio: number,
   cashFlow: number
 ): 'LOW' | 'MEDIUM' | 'HIGH' => {
-  if (creditRating === 'A' && debtRatio < 50 && currentRatio > 150 && cashFlow > 0) return 'LOW';
-  if (creditRating === 'B+' && debtRatio < 70 && currentRatio > 120 && cashFlow > 0) return 'MEDIUM';
+  if (creditRating === 'A' && debtRatio < 50 && currentRatio > 150 && cashFlow > 0) {
+    return 'LOW';
+  }
+  if (creditRating.startsWith('B') && debtRatio < 75 && currentRatio > 100 && cashFlow > -5000000 ) {
+      return 'MEDIUM';
+  }
   return 'HIGH';
+};
+
+// 返済期限アラートの生成
+export const generatePaymentDueAlerts = (): Alert[] => {
+  const today = new Date();
+  const alerts: Alert[] = [];
+
+  loans.forEach((loan) => {
+    const dueDate = new Date(loan.maturityDate);
+    const diffInDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays <= 30 && diffInDays > 0 && loan.status === "active") {
+      alerts.push({
+        id: `paymentDue-${loan.id}-${today.toISOString()}`,
+        companyId: loan.companyId,
+        type: "paymentDue",
+        message: `${
+          companies.find((c) => c.id === loan.companyId)?.name
+        } の返済期限が近づいています (${dueDate.toLocaleDateString()})`,
+        createdAt: today.toISOString(),
+        read: false,
+      });
+    }
+  });
+
+  return alerts;
+};
+
+// 財務指標警告アラートの生成
+export const generateFinancialWarningAlerts = (): Alert[] => {
+  const today = new Date();
+  const alerts: Alert[] = [];
+
+  companies.forEach((company) => {
+    const financials = getFinancialsByCompanyId(company.id);
+    if (financials.length === 0) return;
+
+    const latestFinancial = financials[financials.length - 1];
+
+    if (
+      latestFinancial.debtRatio > 80 ||
+      latestFinancial.currentRatio < 100 ||
+      latestFinancial.cashFlow < -10000000
+    ) {
+      alerts.push({
+        id: `financialWarning-${company.id}-${today.toISOString()}`,
+        companyId: company.id,
+        type: "financialWarning",
+        message: `${company.name} の財務指標が悪化しています`,
+        createdAt: today.toISOString(),
+        read: false,
+      });
+    }
+  });
+
+  return alerts;
 };

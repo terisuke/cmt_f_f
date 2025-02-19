@@ -1,4 +1,4 @@
-import { Company, Loan, Financial, PaymentHistory } from '~/models/types';
+import { Company, Loan, Financial, PaymentHistory, Alert } from '~/models/types';
 
 export const companies: Company[] = [
   {
@@ -371,3 +371,7 @@ export const paymentHistory: PaymentHistory[] = [
   { id: "37", loanId: "4", paymentDate: "2024-03-01", amount: 1000000, paymentType: "both", status: "completed" },
   { id: "38", loanId: "4", paymentDate: "2024-04-01", amount: 1000000, paymentType: "both", status: "completed" }
 ];
+
+export const alerts: Alert[] = [
+
+  ];

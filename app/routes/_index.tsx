@@ -1,6 +1,13 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
+//import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
 import Layout from "~/components/ui/Layout";
+import {
+  generatePaymentDueAlerts,
+  generateFinancialWarningAlerts,
+} from "~/services/mock/api";
+import AlertList from "~/components/business/AlertList";
 
 export const meta: MetaFunction = () => {
   return [
@@ -9,7 +16,17 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader = async () => {
+  const paymentDueAlerts = generatePaymentDueAlerts();
+  const financialWarningAlerts = generateFinancialWarningAlerts();
+  const allAlerts = [...paymentDueAlerts, ...financialWarningAlerts];
+
+  return json({ allAlerts });
+};
+
 export default function Index() {
+  const { allAlerts } = useLoaderData<typeof loader>();
+
   return (
     <Layout>
       <div className="bg-white shadow sm:rounded-lg">
@@ -35,6 +52,11 @@ export default function Index() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-medium text-gray-900">アラート</h2>
+        <AlertList alerts={allAlerts} />
       </div>
     </Layout>
   );

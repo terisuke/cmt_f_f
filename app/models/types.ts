@@ -50,3 +50,13 @@ export type PaymentHistory = {
   paymentType: 'principal' | 'interest' | 'both';  // 支払種別
   status: 'completed' | 'late' | 'missed';         // 支払状況
 };
+
+// アラート
+export type Alert = {
+  id: string;
+  companyId: string;
+  type: 'paymentDue' | 'financialWarning';
+  message: string;
+  createdAt: string;
+  read: boolean; // 既読/未読
+};

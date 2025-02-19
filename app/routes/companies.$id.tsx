@@ -1,12 +1,13 @@
 import { useLoaderData } from "@remix-run/react";
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import Layout from "~/components/ui/Layout";
-import { Company, Financial, Loan } from "~/models/types";
+import { Company, Financial, Loan, PaymentHistory } from "~/models/types"; // PaymentHistory を import
 import {
   evaluateCompanyRisk,
   getCompanyById,
   getFinancialsByCompanyId,
-  getLoansByCompanyId
+  getLoansByCompanyId,
+  getPaymentHistoryByLoanId, // 追加
 } from "~/services/mock/api";
 import { useState } from "react";
 import {
@@ -19,6 +20,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import PaymentHistoryComponent from "~/components/business/PaymentHistory"; // PaymentHistory コンポーネントを import
+
 
 const tabs = [
   { id: "basic", name: "基本情報" },
@@ -33,7 +36,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response("企業IDが見つかりません", { status: 400 });
   }
 
-  const cleanId = decodeURIComponent(id).split('{')[0];
+  const cleanId = decodeURIComponent(id).split("{")[0];
   const company = getCompanyById(cleanId);
 
   if (!company) {
@@ -44,15 +47,28 @@ export async function loader({ params }: LoaderFunctionArgs) {
   const financials = getFinancialsByCompanyId(cleanId);
   const riskEvaluation = evaluateCompanyRisk(cleanId);
 
-  return json({ company, loans, financials, riskEvaluation });
+  // 各ローンの返済履歴を取得
+  const loansWithPaymentHistory = loans.map((loan) => ({
+    ...loan,
+    paymentHistory: getPaymentHistoryByLoanId(loan.id),
+  }));
+
+  return json({
+    company,
+    loans: loansWithPaymentHistory, // paymentHistory を含む loans を返す
+    financials,
+    riskEvaluation,
+  });
 }
 
 export default function CompanyDetail() {
-  const { company, loans, financials, riskEvaluation } = useLoaderData<typeof loader>();
+  const { company, loans, financials, riskEvaluation } =
+    useLoaderData<typeof loader>();
   const [currentTab, setCurrentTab] = useState("basic");
 
   return (
     <Layout>
+      {/* ... (省略: 既存のコード) ... */}
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
           <div className="flex justify-between items-center">
@@ -90,6 +106,7 @@ export default function CompanyDetail() {
         <div className="px-4 py-5 sm:px-6">
           {currentTab === "basic" && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* ... (省略: 基本情報表示) ... */}
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">代表者</h4>
@@ -123,6 +140,7 @@ export default function CompanyDetail() {
 
           {currentTab === "financial" && (
             <div className="space-y-6">
+               {/* ... (省略: 財務情報表示) ... */}
               <div className="w-full overflow-x-auto">
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart
@@ -208,6 +226,7 @@ export default function CompanyDetail() {
               {loans.map((loan) => (
                 <div key={loan.id} className="bg-gray-50 p-4 rounded-lg">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {/* ... (省略: 融資情報表示) ... */}
                     <div>
                       <p className="text-sm text-gray-500">融資額</p>
                       <p className="mt-1 text-lg font-semibold text-gray-900">
@@ -257,17 +276,15 @@ export default function CompanyDetail() {
                       </div>
                     )}
                   </div>
-                  <div className="mt-4">
-                    <a href="#" className="text-indigo-600 hover:text-indigo-900">
-                      返済履歴 (近日公開予定) →
-                    </a>
-                  </div>
+
+                  {/* 返済履歴コンポーネントを追加 */}
+                  <PaymentHistoryComponent paymentHistory={loan.paymentHistory} />
                 </div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      </div>    
     </Layout>
   );
 }
