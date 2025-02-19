@@ -1,10 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./app/**/*.{js,jsx,ts,tsx}",
-  ],
+export default {
+  content: ["./app/**/*.{js,ts,jsx,tsx}"], // Tailwind クラスを使うファイルを指定
   theme: {
     extend: {},
   },
   plugins: [],
-}
+};

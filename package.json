@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "remix vite:build",
-    "dev": "remix dev --manual",
+    "build:css": "tailwindcss -i ./app/tailwind.css -o ./public/styles/tailwind.css --minify",
+    "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
-    "start": "remix-serve ./build/server/index.js",
+    "start": "remix-serve ./build/index.js",
     "typecheck": "tsc"
   },
   "dependencies": {
