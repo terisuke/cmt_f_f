@@ -19,13 +19,16 @@ module.exports = {
     commonjs: true,
     es6: true,
   },
+  // .eslintignore 相当。すでに設定済みならそのままでOK
   ignorePatterns: ["!**/.server", "!**/.client"],
 
   // Base config
   extends: ["eslint:recommended"],
 
   overrides: [
-    // React
+    // --------------------------
+    // React 用設定
+    // --------------------------
     {
       files: ["**/*.{js,jsx,ts,tsx}"],
       plugins: ["react", "jsx-a11y"],
@@ -44,25 +47,37 @@ module.exports = {
           { name: "Link", linkAttribute: "to" },
           { name: "NavLink", linkAttribute: "to" },
         ],
+        // import/resolver は下のTSオーバーライドにも設定しますが、
+        // ここに置いても問題ありません。TSオーバーライドで上書きされます。
         "import/resolver": {
           typescript: {},
         },
       },
     },
 
-    // Typescript
+    // --------------------------
+    // TypeScript 用設定
+    // --------------------------
     {
       files: ["**/*.{ts,tsx}"],
       plugins: ["@typescript-eslint", "import"],
       parser: "@typescript-eslint/parser",
+      parserOptions: {
+        // ここでtsconfig.jsonへのパスを明示
+        project: ["./tsconfig.json"],
+        // tsconfig.json が存在するルートディレクトリを指定
+        tsconfigRootDir: __dirname,
+      },
       settings: {
         "import/internal-regex": "^~/",
         "import/resolver": {
           node: {
-            extensions: [".ts", ".tsx"],
+            extensions: [".ts", ".tsx", ".js", ".jsx"],
           },
           typescript: {
             alwaysTryTypes: true,
+            // こちらでも念のためプロジェクトパスを指定
+            project: "./tsconfig.json",
           },
         },
       },
@@ -73,7 +88,9 @@ module.exports = {
       ],
     },
 
-    // Node
+    // --------------------------
+    // Node 用設定
+    // --------------------------
     {
       files: [".eslintrc.cjs"],
       env: {

@@ -72,6 +72,7 @@ export default function CompanyDetail() {
           <nav className="-mb-px flex" aria-label="Tabs">
             {tabs.map((tab) => (
               <button
+                type="button"
                 key={tab.id}
                 onClick={() => setCurrentTab(tab.id)}
                 className={`${
