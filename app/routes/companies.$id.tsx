@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useParams } from "@remix-run/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "~/components/ui/Layout";
+import { Company, Financial, Loan } from "~/models/types";
 import {
   evaluateCompanyRisk,
   getCompanyById,
@@ -16,38 +18,40 @@ const tabs = [
 
 export default function CompanyDetail() {
   const { id } = useParams();
-  const [currentTab, setCurrentTab] = useState("basic");
+  const [currentTab, setCurrentTab] = useState<string>("basic");
+
+  // データ取得を useEffect 内に移動
+  const [company, setCompany] = useState<Company | null>(null);
+  const [loans, setLoans] = useState<Loan[]>([]);
+  const [financials, setFinancials] = useState<Financial[]>([]);
+  const [riskEvaluation, setRiskEvaluation] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    
+    const cleanId = decodeURIComponent(id).split('{')[0];
+    const companyData = getCompanyById(cleanId);
+    if (companyData) setCompany(companyData);
+    setLoans(getLoansByCompanyId(cleanId));
+    setFinancials(getFinancialsByCompanyId(cleanId));
+    setRiskEvaluation(evaluateCompanyRisk(cleanId));
+  }, [id]);
+
+  if (!id) {
+    return <div>企業IDが見つかりません</div>;
+  }
+
+  if (!company) {
+    return <div>企業が見つかりません</div>;
+  }
 
   // パラメータのデバッグログ
   console.log("Raw id from params:", id);
   console.log("Current Tab:", currentTab);
 
-  if (!id) {
-    console.log("No ID provided");
-    return <div>企業IDが見つかりません</div>;
-  }
-
   // URLパラメータのクリーンアップとデバッグログ
   const cleanId = decodeURIComponent(id).split('{')[0];
   console.log("Cleaned ID:", cleanId);
-
-  const company = getCompanyById(cleanId);
-  const loans = getLoansByCompanyId(cleanId);
-  const financials = getFinancialsByCompanyId(cleanId);
-  const riskEvaluation = evaluateCompanyRisk(cleanId);
-
-  // データ取得結果のデバッグログ
-  console.log("Fetched Data:", {
-    company,
-    loans,
-    financials,
-    riskEvaluation
-  });
-
-  if (!company) {
-    console.log("Company not found for id:", cleanId);
-    return <div>企業が見つかりません</div>;
-  }
 
   return (
     <Layout>
