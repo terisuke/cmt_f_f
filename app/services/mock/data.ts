@@ -39,6 +39,18 @@ export const loans: Loan[] = [
     status: "active",
     collateral: "工場設備一式",
   },
+  {
+    id: "2",
+    companyId: "2",
+    loanAmount: 80000000,
+    interestRate: 4.0,
+    loanDate: "2023-12-01",
+    maturityDate: "2026-11-30",
+    remainingAmount: 75000000,
+    purpose: "運転資金",
+    status: "active",
+    collateral: "在庫一式",
+  },
   // 他の融資データ...
 ];
 
@@ -55,6 +67,19 @@ export const financials: Financial[] = [
     cashFlow: 45000000,
     debtRatio: 60.5,
     currentRatio: 150.2,
+  },
+  {
+    id: "2",
+    companyId: "2",
+    fiscalYear: "2023",
+    revenue: 600000000,
+    operatingProfit: 45000000,
+    netIncome: 25000000,
+    totalAssets: 400000000,
+    netAssets: 150000000,
+    cashFlow: 35000000,
+    debtRatio: 70.5,
+    currentRatio: 130.2,
   },
   // 他の財務データ...
 ];

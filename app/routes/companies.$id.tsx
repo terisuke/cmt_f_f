@@ -1,11 +1,11 @@
-import { useState } from "react";
 import { useParams } from "@remix-run/react";
+import { useState } from "react";
 import Layout from "~/components/ui/Layout";
-import { 
-  getCompanyById, 
-  getLoansByCompanyId, 
+import {
+  evaluateCompanyRisk,
+  getCompanyById,
   getFinancialsByCompanyId,
-  evaluateCompanyRisk 
+  getLoansByCompanyId
 } from "~/services/mock/api";
 
 const tabs = [
@@ -18,14 +18,36 @@ export default function CompanyDetail() {
   const { id } = useParams();
   const [currentTab, setCurrentTab] = useState("basic");
 
-  if (!id) return <div>企業IDが見つかりません</div>;
+  // パラメータのデバッグログ
+  console.log("Raw id from params:", id);
+  console.log("Current Tab:", currentTab);
 
-  const company = getCompanyById(id);
-  const loans = getLoansByCompanyId(id);
-  const financials = getFinancialsByCompanyId(id);
-  const riskEvaluation = evaluateCompanyRisk(id);
+  if (!id) {
+    console.log("No ID provided");
+    return <div>企業IDが見つかりません</div>;
+  }
 
-  if (!company) return <div>企業が見つかりません</div>;
+  // URLパラメータのクリーンアップとデバッグログ
+  const cleanId = decodeURIComponent(id).split('{')[0];
+  console.log("Cleaned ID:", cleanId);
+
+  const company = getCompanyById(cleanId);
+  const loans = getLoansByCompanyId(cleanId);
+  const financials = getFinancialsByCompanyId(cleanId);
+  const riskEvaluation = evaluateCompanyRisk(cleanId);
+
+  // データ取得結果のデバッグログ
+  console.log("Fetched Data:", {
+    company,
+    loans,
+    financials,
+    riskEvaluation
+  });
+
+  if (!company) {
+    console.log("Company not found for id:", cleanId);
+    return <div>企業が見つかりません</div>;
+  }
 
   return (
     <Layout>
