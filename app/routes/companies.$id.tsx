@@ -232,6 +232,35 @@ export default function CompanyDetail() {
                         {loan.maturityDate}
                       </p>
                     </div>
+                    <div>
+                      <p className="text-sm text-gray-500">融資ステータス</p>
+                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                        {loan.status === 'active' ? '返済中' :
+                         loan.status === 'completed' ? '返済完了' :
+                         '債務不履行'}
+                      </p>
+                    </div>
+                    {loan.collateral && (
+                      <div>
+                        <p className="text-sm text-gray-500">担保</p>
+                        <p className="mt-1 text-lg font-semibold text-gray-900">
+                          {loan.collateral}
+                        </p>
+                      </div>
+                    )}
+                    {loan.guarantor && (
+                      <div>
+                        <p className="text-sm text-gray-500">保証人</p>
+                        <p className="mt-1 text-lg font-semibold text-gray-900">
+                          {loan.guarantor}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4">
+                    <a href="#" className="text-indigo-600 hover:text-indigo-900">
+                      返済履歴 (近日公開予定) →
+                    </a>
                   </div>
                 </div>
               ))}
