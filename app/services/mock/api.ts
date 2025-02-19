@@ -19,10 +19,13 @@ export const getPaymentHistoryByLoanId = (loanId: string): PaymentHistory[] =>
   paymentHistory.filter(p => p.loanId === loanId);
 
 // リスク評価の返り値の型定義
-type RiskEvaluation = {
+export type RiskEvaluation = {
   debtServiceRatio: number;
   creditRating: string;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  debtRatio: number;
+  currentRatio: number;
+  cashFlow: number;
 } | null;
 
 // リスク評価（簡易版）
@@ -36,22 +39,34 @@ export const evaluateCompanyRisk = (companyId: string): RiskEvaluation => {
   }
 
   const latestFinancial = companyFinancials[companyFinancials.length - 1];
-  const totalLoanAmount = companyLoans.reduce((sum, loan) => 
-    sum + loan.remainingAmount, 0);
+  const totalLoanAmount = companyLoans.reduce(
+    (sum, loan) => sum + loan.remainingAmount,
+    0
+  );
 
   return {
-    debtServiceRatio: (latestFinancial.cashFlow / totalLoanAmount) * 100,
+    debtServiceRatio: totalLoanAmount / latestFinancial.cashFlow,
     creditRating: company.creditRating,
-    riskLevel: getRiskLevel(company.creditRating, latestFinancial.debtRatio)
+    riskLevel: getRiskLevel(
+      company.creditRating,
+      latestFinancial.debtRatio,
+      latestFinancial.currentRatio,
+      latestFinancial.cashFlow
+    ),
+    debtRatio: latestFinancial.debtRatio,
+    currentRatio: latestFinancial.currentRatio,
+    cashFlow: latestFinancial.cashFlow
   };
 };
 
 // リスクレベルの判定（内部関数）
 const getRiskLevel = (
-  creditRating: string, 
-  debtRatio: number
+  creditRating: string,
+  debtRatio: number,
+  currentRatio: number,
+  cashFlow: number
 ): 'LOW' | 'MEDIUM' | 'HIGH' => {
-  if (creditRating === 'A' && debtRatio < 70) return 'LOW';
-  if (creditRating === 'B+' && debtRatio < 80) return 'MEDIUM';
+  if (creditRating === 'A' && debtRatio < 50 && currentRatio > 150 && cashFlow > 0) return 'LOW';
+  if (creditRating === 'B+' && debtRatio < 70 && currentRatio > 120 && cashFlow > 0) return 'MEDIUM';
   return 'HIGH';
 };

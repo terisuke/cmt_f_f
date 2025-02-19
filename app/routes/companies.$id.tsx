@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useParams } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { useLoaderData } from "@remix-run/react";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import Layout from "~/components/ui/Layout";
 import { Company, Financial, Loan } from "~/models/types";
 import {
@@ -9,6 +8,7 @@ import {
   getFinancialsByCompanyId,
   getLoansByCompanyId
 } from "~/services/mock/api";
+import { useState } from "react";
 
 const tabs = [
   { id: "basic", name: "基本情報" },
@@ -16,42 +16,30 @@ const tabs = [
   { id: "loans", name: "融資情報" },
 ];
 
-export default function CompanyDetail() {
-  const { id } = useParams();
-  const [currentTab, setCurrentTab] = useState<string>("basic");
-
-  // データ取得を useEffect 内に移動
-  const [company, setCompany] = useState<Company | null>(null);
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [financials, setFinancials] = useState<Financial[]>([]);
-  const [riskEvaluation, setRiskEvaluation] = useState<any>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    
-    const cleanId = decodeURIComponent(id).split('{')[0];
-    const companyData = getCompanyById(cleanId);
-    if (companyData) setCompany(companyData);
-    setLoans(getLoansByCompanyId(cleanId));
-    setFinancials(getFinancialsByCompanyId(cleanId));
-    setRiskEvaluation(evaluateCompanyRisk(cleanId));
-  }, [id]);
+export async function loader({ params }: LoaderFunctionArgs) {
+  const id = params.id;
 
   if (!id) {
-    return <div>企業IDが見つかりません</div>;
+    throw new Response("企業IDが見つかりません", { status: 400 });
   }
+
+  const cleanId = decodeURIComponent(id).split('{')[0];
+  const company = getCompanyById(cleanId);
 
   if (!company) {
-    return <div>企業が見つかりません</div>;
+    throw new Response("企業が見つかりません", { status: 404 });
   }
 
-  // パラメータのデバッグログ
-  console.log("Raw id from params:", id);
-  console.log("Current Tab:", currentTab);
+  const loans = getLoansByCompanyId(cleanId);
+  const financials = getFinancialsByCompanyId(cleanId);
+  const riskEvaluation = evaluateCompanyRisk(cleanId);
 
-  // URLパラメータのクリーンアップとデバッグログ
-  const cleanId = decodeURIComponent(id).split('{')[0];
-  console.log("Cleaned ID:", cleanId);
+  return json({ company, loans, financials, riskEvaluation });
+}
+
+export default function CompanyDetail() {
+  const { company, loans, financials, riskEvaluation } = useLoaderData<typeof loader>();
+  const [currentTab, setCurrentTab] = useState("basic");
 
   return (
     <Layout>
